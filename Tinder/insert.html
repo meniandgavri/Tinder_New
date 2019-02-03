@@ -1,0 +1,216 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Tinder HW</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+    <script src="../Scripts/ajaxCalls.js"></script>
+
+
+    <script>
+
+        $(document).ready(function () {
+        var path;
+ //get all hobbies from DB
+            ajaxCall("GET", "../api/hobbies", "", successGetHobbies, errorGetHobbies);
+
+            $("#pForm").submit(f1);
+        });
+
+        function InsertImage() {
+            var data = new FormData();
+            var files = $("#image").get(0).files;
+            var pName = $("#name").val();
+            // Add the uploaded file to the form data collection  
+            if (files.length > 0) {
+
+                for (f = 0; f < files.length; f++) {
+                    data.append("UploadedImage", files[f]);
+                }
+                data.append("name", pName); // aopend what ever data you want to send along with the files. See how you extract it in the controller.
+
+
+            }
+            else {
+                  
+                if ($("#gender").val() == "Female") {
+                    path = "Images/female.jpg";
+                }
+                else {
+                    path = "Images/male.jpg";
+                }
+                AddPerson();
+
+                return;
+            }
+
+                // Ajax upload  
+                $.ajax({
+                    type: "POST",
+                    url: "../Api/FileUpload",
+                    contentType: false,
+                    processData: false,
+                    data: data,
+                    success: Success1,
+                    error: error
+                });
+
+                return false;
+            }
+        
+            function Success1(data) {
+                path = data[0];
+                console.log(path);
+              
+                AddPerson();
+                }
+                
+                
+            
+            function AddPerson() {
+                Person = { // Note that the name of the fields must be identical to the names of the properties of the object in the server
+                    Name: $("#name").val(),
+                    FamilyName: $("#familyName").val(),
+                    Address: $("#address").val(),
+                    Age: $("#age").val(),
+                    Height: $("#height").val(),
+                    Tel: $("#Tel").val(),
+                    Gender: $("#gender").val(),
+                    Premium: $("#test input[type='radio']:checked").val(),
+                    Hobbies: $("#hobbies").val(),
+                    Active: 1,
+                    Img: path,
+                    Password: $("#password").val(),
+                    UserName: $("#username").val()
+
+                }
+               
+                
+                ajaxCall("POST", "../api/person/Add", JSON.stringify(Person), success, error);
+            }
+
+            function success(data) {
+                swal("Added!", "Person is successfully Added!", "success");
+            }
+
+            function error(err) {
+                alert("error");
+            }
+
+            function f1() {
+                InsertImage();
+                
+
+                return false; // the return false will prevent the form from being submitted
+                // hence the page will not reload
+            }
+        
+            // this function is activated in case of a success
+            function successGetHobbies(hobbiesdata) {
+                let str = "";
+                for (var i = 0; i < hobbiesdata.length; i++) {
+                    str += "<option value=" + hobbiesdata[i].Id + ">" + hobbiesdata[i].Hobby_name + "</option>";
+                }
+                $("#hobbies").html(str);
+
+            }
+
+            // this function is activated in case of a failure
+            function errorGetHobbies(err) {
+            }
+        
+    </script>
+
+</head>
+<body>
+
+
+
+
+    <nav class="navbar navbar-default">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <a class="navbar-brand" href="#">Tinder</a>
+            </div>
+            <ul class="nav navbar-nav">
+                <li class="active"><a href="insert.html">Add a Person</a></li>
+                <li><a href="showNew.html">Show</a></li>
+            </ul>
+        </div>
+    </nav>
+
+
+
+
+    <div class="container">
+        <form id="pForm">
+            <h2>Enter Your Details</h2>
+            <div class="form-group">
+                <label for="name">Name</label>
+                <input type="text" class="form-control" id="name" placeholder="Enter your name" required>
+            </div>
+            <div class="form-group">
+                <label for="familyName">Family Name</label>
+                <input type="text" class="form-control" id="familyName" placeholder="Enter your family name" required>
+            </div>
+            <div class="form-group">
+                <label for="username">Mail</label>
+                <input type="email" class="form-control" id="username" placeholder="Enter a mail in this format: xxx@xxx.xxx" pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" class="form-control" id="password" placeholder="Enter your password" required>
+            </div>
+            <div class="form-group">
+                <label for="address">Address</label>
+                <input type="text" class="form-control" id="address" placeholder="Enter your Address" required>
+            </div>
+            <div class="form-group">
+                <label for="age">Age</label>
+                <input type="number" class="form-control" id="age" placeholder="Enter your Age" min="18" required oninvalid="this.setCustomValidity('must be over 18')">
+            </div>
+            <div class="form-group">
+                <label for="height">Height</label>
+                <input type="number" class="form-control" id="height" placeholder="Enter your Height" required>
+            </div>
+            <div class="form-group">
+                <label for="Tel">Tel</label>
+                <input type="text" pattern="[0-0]{1}[0-9]{9}" class="form-control" id="Tel" placeholder="Enter your Tel example:0542214541" required>
+            </div>
+            <div class="form-group">
+                <label for="gender">Gender</label>
+                <select id="gender" required>
+                    <option value="">Choose Gender</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                </select>
+            </div>
+            <div id="test" class="form-group">
+                <label for="Premium">Premium</label> <br />
+                <input type="radio" name="Premium" value="1"> Premium<br />
+                <input type="radio" name="Premium" value="0"> Non Premium<br />
+            </div>
+
+            <div class="form-group">
+                <label for="hobbies">Hobbies</label>
+                <select id="hobbies" multiple required></select>
+            </div>
+
+            <div class="form-group">
+                <label for="image">Upload Pictures</label>
+                <input type="file" id="image" name="image" multiple="multiple" />
+            </div>
+
+            <!--<button type="button" id="buttonUpload">Upload files</button>-->
+
+            <input type="submit" value="Submit BTN" />
+        </form>
+    </div>
+
+
+</body>
+</html>

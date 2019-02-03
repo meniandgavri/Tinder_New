@@ -1,0 +1,62 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+    <script src="../Scripts/ajaxCalls.js"></script>
+    <link rel="stylesheet" type="text/css" href="StyleSheet1.css">
+
+    <script>
+        Password = "";
+        UserName = "";
+   
+        $(document).ready(function () {
+
+            $("#loginPage").submit(f1);
+        });
+
+        function f1() {
+            loginUser();
+            return false;
+        }
+        function loginUser() {
+                Password = $("#password").val(),
+                UserName = $("#username").val()
+            
+            ajaxCall("GET", "../api/Login?username=" + UserName, "", success2, error2);
+        }
+        function success2(data) {
+            if (data.UserName != null && data.Password == Password) {
+                window.location.href = "update.html?mail=" + data.UserName+"&id="+data.Id;
+                
+            }
+            else {
+                
+                alert("The user does not exist or the password is incorrect, please try again");
+            }
+            
+        }
+        function error2() {
+            alert("Noooo");
+        }
+    </script>
+
+    <title></title>
+</head>
+<body>
+    <div class="login-page">
+        <div id="loginPage" class="form">
+            <form class="login-form">
+                <input id="username" type="text" placeholder="Mail" required />
+                <input id="password" type="password" placeholder="Password" required />
+                <button type="submit">login</button>
+                <p class="message" id="newAccount">Not registered? <a href="insert.html">Create an account</a></p>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

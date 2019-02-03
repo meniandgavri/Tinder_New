@@ -1,0 +1,361 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+
+
+    <title>DataTable Example</title>
+
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.19/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.19/css/dataTables.bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/responsive/2.2.3/css/responsive.dataTables.min.css">
+    <script type="text/javascript" src="https://code.jquery.com/jquery-3.3.1.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/responsive/2.2.3/js/dataTables.responsive.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/1.10.19/js/dataTables.bootstrap.min.js"></script>
+    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+
+    <script src="../Scripts/ajaxCalls.js"></script>
+    <style>
+        #caution {
+            margin-right: 4%;
+            width: 8%;
+            height: 80%;
+        }
+
+        button {
+            margin-left: 10px;
+        }
+
+        .button {
+            padding: 15px 25px;
+            font-size: 20px;
+            text-align: center;
+            cursor: pointer;
+            outline: none;
+            color: #fff;
+            background-color: #4CAF50;
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 9px #999;
+        }
+
+            .button:hover {
+                background-color: #3e8e41
+            }
+
+            .button:active {
+                background-color: #3e8e41;
+                box-shadow: 0 5px #666;
+                transform: translateY(4px);
+            }
+        #saveAll {
+            margin-left: 2%;
+            border-radius: 5px;
+            border: 2px solid black;
+            background-color: darkred;
+        }
+
+        .button1 {
+            background-color: green; /* Green */
+            border: none;
+            color: white;
+            padding: 15px 32px;
+            text-align: center;
+            text-decoration: none;
+            font-size: 16px;
+        }
+
+        .divInDt {
+            text-align: center;
+            font-family: sans-serif;
+        }
+
+        #photo1 {
+            height: 70px;
+            margin-bottom: 20px;
+        }
+
+        .container {
+            background-color: aqua;
+            width: 100%;
+        }
+        .imgDataTable{
+            height:30px;
+            width:30px;
+        }
+            .imgDataTable:hover {
+                height: 60px;
+                width:60px;
+            }
+    </style>
+
+    <script>
+        var hobbiesArr = [];
+        var currentId;
+        var SaveAllChanges = [];
+        var suc = 0;
+        var divNum = 0;
+        var divId;
+        function DontForget() {
+            divId = "warning" + divNum;
+            divNum++;
+            var div = document.createElement("div");
+            div.id = divId;
+            div.style.width = " 100%";
+            div.style.height = "50px";
+            div.style.background = "red";
+            div.style.color = "white";
+            div.innerHTML = "<img id='caution' src='Images/caution.png'/><span>DON'T FORGET TO SAVE CHANGES! </span><button id='saveAll' onclick='SaveAll()'>Save All</button>";
+            div.style.position = "fixed";
+            div.style.top = "0px";
+            div.style.left = "0px";
+            div.style.textAlign = "center";
+            div.style.fontSize = "30px";
+            div.style.display = "block";
+
+            document.getElementById("body").appendChild(div);
+
+        }
+
+        function SaveAll() {
+
+            length = SaveAllChanges.length;
+            for (var i = 0; i < length; i++) {
+
+                saveChange(SaveAllChanges.pop());
+                suc--;
+            }
+            SaveAllChanges = [];
+        }
+
+        function change(obj) {
+            if (suc == 0) {
+                DontForget();
+            }
+            var subObj = obj.substring(1);
+            if (SaveAllChanges.indexOf(subObj.toString()) == -1) {
+                suc++;
+                SaveAllChanges.push(subObj);
+            }
+            newId = "#" + subObj;
+            $(newId).css("background-color", "red");
+        }
+
+        personDataG = "";
+        // will run when the document is ready
+        $(document).ready(function () {
+
+            // once the document is ready we fetch a list of cars from the server
+            ajaxCall("GET", "../api/hobbies", "", successGetHobbies, errorGetHobbies);
+            ajaxCall("GET", "../api/person/datatable", "", getSuccess, error);
+
+
+        });
+        function successGetHobbies(date) {
+            hobbiesArr = date;
+        }
+        function errorGetHobbies(date) {
+            alert("Error to load hobbies");
+        }
+        // this should be used when the active value is changed
+        function saveChange(obj) {
+            currentId = obj;
+            var Active;
+            var id1 = "c" + obj;
+            var x = document.getElementById(id1).checked;
+            if (x == true) {
+                Active = 1;
+
+            }
+            else {
+                Active = 0;
+            }
+            $("#" + obj).css("background-color", "green");
+            // replace with true value
+            ajaxCall("PUT", "../api/persons/?Active=" + Active + "&PersonId=" + obj, "", updateSuccess, error);
+        }
+
+
+        // success callback function after update
+        function updateSuccess() {
+            swal("Updated!", "Person is successfully Updated!", "success");
+            if (SaveAllChanges.indexOf(currentId) != -1) {
+                SaveAllChanges.splice(SaveAllChanges.indexOf(currentId), 1);
+                suc--;
+            }
+            if (suc == 0) {
+                document.getElementById(divId).style.display = "none";
+
+            }
+        }
+
+        function decorate(date) {
+            return "<div class = 'divInDt'>" + date + "</div>";
+        }
+        function getSuccess(persondata) {
+            exp = "error";
+            try {
+                tbl = $("#personTable").DataTable
+                    (
+                    {
+                        data: persondata,
+                        pageLength: 5,
+                        columns:
+                            [
+                                {
+                                    render: function (date, type, row, meta) {
+                                        perId = row.Id;
+
+                                        saveBtn = "<button class = 'button' type = 'button' id = '" + perId + "' onclick = 'saveChange(this.id)' > Save</button > ";
+                                        return saveBtn;
+                                    },
+                                    'sortable': false,
+                                    'searchable': false
+                                },
+                                {
+                                    data: "Name",
+                                    render: function (date, type, row, meta) {
+                                        return decorate(date);
+                                    }
+                                },
+                                {
+                                    data: "FamilyName",
+                                    render: function (date, type, row, meta) {
+                                        return decorate(date);
+                                    }
+                                },
+                                {
+                                    data: "Age",
+                                    render: function (date, type, row, meta) {
+                                        return decorate(date);
+                                    }
+                                },
+                                {
+                                    data: "Height",
+                                    render: function (date, type, row, meta) {
+                                        return decorate(date);
+                                    }
+                                },
+                                {
+                                    data: "Gender",
+                                    render: function (date, type, row, meta) {
+                                        return decorate(date);
+                                    }
+                                },
+                                {
+                                    data: "Address",
+                                    render: function (date, type, row, meta) {
+                                        return decorate(date);
+                                    }
+                                },
+                                {
+                                    data: "Hobbies",
+                                    render: function (date, type, row, meta) {
+                                        str = "";
+                                        var hob;
+                                        var temp="";
+                                        //for ( i = 0; i < row.Hobbie.length; i++) {
+                                        
+                                        str += row.Hobbies;
+                                        if (str.length > 0) {
+                                           hob= str.split(",");
+                                            
+                                            for (var i = 0; i < hob.length; i++) {
+                                               
+                                                temp += hobbiesArr[hob[i] - 1].Hobby_name + ", ";
+
+                                            }
+                                            temp = temp.substring(0, temp.length-2);
+                                        }
+
+                                           
+                                        return temp;
+                                    }
+                                },
+                                {
+                                    data: "Img",
+                                    'sortable': false,
+                                    render: function (data, type, row, meta) {
+                                        var userImg = "<img class='imgDataTable' src = '" + data + "'/>";
+                                        return userImg;
+                                    }
+                                },
+                                {
+                                    data: "Active",
+                                    render: function (data, type, row, meta) {
+                                        perId2 = (row.Id);
+                                        if (data == 1)
+                                            return '<input type="checkbox" checked id = "c' + perId2 + '" onchange="change(this.id)" />';
+                                        else
+                                            return '<input type="checkbox"  id = "c' + perId2 + '" onchange="change(this.id)"/>';
+                                    }
+                                },
+                                {
+                                    data: "Premium",
+
+                                    render: function (data, type, row, meta) {
+                                        if (data == 1)
+                                            return "Premium";
+                                        else
+                                            return "Not a Premium";
+                                    }
+                                },
+                                {
+                                    data: "Tel",
+                                    'sortable': false
+                                }
+                            ],
+
+                    }
+                    );
+            }
+            catch (exe) {
+                alert(exp);
+            }
+
+        }
+
+
+        // this function is activated in case of a failure
+        function error(err) {
+            swal("Error: " + err);
+        }
+
+    </script>
+
+</head>
+<body id="body">
+    <div class="container">
+        <div>
+            <img id="photo1" src="Images/Logo_Tinder.png" />
+        </div>
+        <form id="pForm">
+            <table id="personTable" class="display nowrap" style="width:80%;">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>Name</th>
+                        <th>FamilyName</th>
+                        <th>Age</th>
+                        <th>Height</th>
+                        <th>Gender</th>
+                        <th>Address</th>
+                        <th>Hobbies</th>
+                        <th>Img</th>
+                        <th>Active</th>
+                        <th>Premium</th>
+                        <th>Tel</th>
+                    </tr>
+                </thead>
+            </table>
+        </form>
+    </div>
+
+
+</body>
+</html>
